@@ -10,17 +10,15 @@ class CourseManager {
     init() {
         this.bindEvents();
         this.renderCourses();
+        this.renderTimeSlotsInForm();
     }
 
     bindEvents() {
-        // 原有事件绑定
         const form = document.getElementById('courseForm');
         const addBtn = document.getElementById('addCourseBtn');
         const closeBtn = document.getElementById('closeModal');
         const cancelBtn = document.getElementById('cancelBtn');
         const modal = document.getElementById('courseModal');
-        
-        // 新增时间段管理事件
         const manageTimeSlotsBtn = document.getElementById('manageTimeSlotsBtn');
         const timeSlotsModal = document.getElementById('timeSlotsModal');
         const closeTimeSlotsModal = document.getElementById('closeTimeSlotsModal');
@@ -60,50 +58,74 @@ class CourseManager {
         });
     }
 
-    // 原有方法保持不变
-    handleSubmit(e) {
-        e.preventDefault();
+    handleSubmit(event) {
+        event.preventDefault();
         
-        const formData = new FormData(e.target);
-        const course = {
-            id: Date.now().toString(),
-            name: formData.get('courseName'),
-            teacher: formData.get('teacher'),
-            day: formData.get('day'),
-            time: formData.get('time'),
-            location: formData.get('location'),
-            description: formData.get('description'),
-            createdAt: new Date().toLocaleString('zh-CN')
-        };
-
-        const success = this.addCourse(course);
-        if (success) {
-            this.clearForm();
-            this.closeModal();
-            this.showSuccessMessage();
+        // 获取表单数据
+        const courseName = document.getElementById('courseName').value;
+        const teacher = document.getElementById('teacher').value;
+        const day = document.getElementById('day').value;
+        const time = document.getElementById('time').value;
+        const location = document.getElementById('location').value;
+        const description = document.getElementById('description').value;
+        // 获取学生人数
+        const studentCount = document.getElementById('studentCount').value;
+        
+        // 验证数据
+        if (!courseName || !teacher || !day || !time || !location) {
+            this.showErrorMessage('请填写所有必填字段');
+            return;
         }
+        
+        // 检查是否已存在相同时间和日期的课程
+        const exists = this.courses.some(course => course.day === day && course.time === time);
+        if (exists) {
+            this.showErrorMessage('该时间段已有课程');
+            return;
+        }
+        
+        // 创建新课程对象，包含学生人数
+        const newCourse = {
+            id: Date.now().toString(),
+            name: courseName,
+            teacher: teacher,
+            day: day,
+            time: time,
+            location: location,
+            description: description,
+            studentCount: studentCount || '0'  // 如果未填写，默认为0
+        };
+        
+        // 添加课程
+        this.addCourse(newCourse);
+        
+        // 关闭模态框并清空表单
+        this.closeModal();
+        this.clearForm();
+        
+        // 显示成功消息
+        this.showSuccessMessage('课程添加成功');
     }
-
+    
     openModal() {
         const modal = document.getElementById('courseModal');
         modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        this.updateTimeSelect();
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+        this.renderTimeSlotsInForm();
     }
 
     closeModal() {
         const modal = document.getElementById('courseModal');
         modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = 'auto'; // 恢复滚动
         this.clearForm();
     }
 
-    // 新增时间段管理方法
     openTimeSlotsModal() {
         const modal = document.getElementById('timeSlotsModal');
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        this.renderTimeSlotsList();
+        this.renderTimeSlotsManagement();
     }
 
     closeTimeSlotsModal() {
@@ -112,12 +134,143 @@ class CourseManager {
         document.body.style.overflow = 'auto';
     }
 
-    renderTimeSlotsList() {
+    addCourse(course) {
+        // 检查是否有课程冲突
+        const conflict = this.courses.find(existingCourse => 
+            existingCourse.day === course.day && existingCourse.time === course.time
+        );
+        
+        if (conflict) {
+            this.showErrorMessage(`该时间段已有课程：${conflict.name}`);
+            return false;
+        }
+        
+        this.courses.push(course);
+        this.saveCourses();
+        this.renderCourses();
+        return true;
+    }
+
+    deleteCourse(courseId) {
+        this.courses = this.courses.filter(course => course.id !== courseId);
+        this.saveCourses();
+        this.renderCourses();
+    }
+
+    renderCourses() {
+        // 清空所有课程单元格
+        document.querySelectorAll('.course-cell').forEach(cell => {
+            cell.innerHTML = '';
+        });
+        
+        // 根据课程数据渲染课程
+        this.courses.forEach(course => {
+            const { day, time } = course;
+            const cell = document.querySelector(`.course-cell[data-day="${day}"][data-time="${time}"]`);
+            
+            if (cell) {
+                // 创建课程项元素
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+                courseItem.setAttribute('data-course-id', course.id);
+                
+                // 设置课程项的基本信息
+                courseItem.innerHTML = `
+                    <div class="course-name">${course.name}</div>
+                    <div class="course-teacher">${course.teacher}</div>
+                    <div class="course-location">${course.location}</div>
+                    <button class="delete-btn" data-course-id="${course.id}">×</button>
+                `;
+                
+                // 添加鼠标悬浮显示更多信息的功能
+                courseItem.addEventListener('mouseenter', (e) => {
+                    // 避免在点击删除按钮时显示提示
+                    if (e.target.classList.contains('delete-btn')) return;
+                    
+                    // 创建提示框
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'course-tooltip';
+                    tooltip.id = `tooltip-${course.id}`;
+                    
+                    // 设置提示框内容，包含所有额外信息
+                    tooltip.innerHTML = `
+                        <div class="tooltip-header">${course.name}</div>
+                        <div class="tooltip-content">
+                            <div><strong>教师：</strong>${course.teacher}</div>
+                            <div><strong>时间：</strong>${day} ${time}</div>
+                            <div><strong>地点：</strong>${course.location}</div>
+                            <div><strong>学生人数：</strong>${course.studentCount}</div>
+                            ${course.description ? `<div><strong>描述：</strong>${course.description}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    // 设置提示框位置
+                    const rect = courseItem.getBoundingClientRect();
+                    tooltip.style.position = 'fixed';
+                    tooltip.style.left = `${rect.right + 10}px`;
+                    tooltip.style.top = `${rect.top}px`;
+                    tooltip.style.zIndex = '1001';
+                    
+                    // 添加到文档
+                    document.body.appendChild(tooltip);
+                });
+                
+                // 鼠标离开时移除提示框
+                courseItem.addEventListener('mouseleave', () => {
+                    const tooltip = document.getElementById(`tooltip-${course.id}`);
+                    if (tooltip) {
+                        document.body.removeChild(tooltip);
+                    }
+                });
+                
+                // 添加删除课程的事件监听
+                courseItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    this.deleteCourse(course.id);
+                });
+                
+                // 将课程项添加到单元格
+                cell.appendChild(courseItem);
+            }
+        });
+        
+        // 更新空状态显示
+        this.updateEmptyState();
+    }
+
+    updateEmptyState() {
+        const emptyState = document.getElementById('emptyState');
+        
+        if (this.courses.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+        }
+    }
+
+    // 时间段管理相关方法
+    renderTimeSlotsInForm() {
+        const timeSelect = document.getElementById('time');
+        timeSelect.innerHTML = '<option value="">请选择时间段</option>';
+        
+        this.timeSlots.forEach(timeSlot => {
+            const option = document.createElement('option');
+            option.value = timeSlot;
+            option.textContent = timeSlot;
+            timeSelect.appendChild(option);
+        });
+    }
+
+    renderTimeSlotsManagement() {
         const timeSlotsList = document.getElementById('timeSlotsList');
         timeSlotsList.innerHTML = '';
         
         if (this.timeSlots.length === 0) {
-            timeSlotsList.innerHTML = `<div class="empty-time-slots"><p>暂无自定义时间段，请添加新的时间段</p></div>`;
+            timeSlotsList.innerHTML = `
+                <div class="empty-time-slots">
+                    <p>暂无自定义时间段，请添加新的时间段</p>
+                </div>
+            `;
             return;
         }
         
@@ -153,7 +306,7 @@ class CourseManager {
     addNewTimeSlot() {
         const timeSlotsList = document.getElementById('timeSlotsList');
         
-        // 显示添加表单
+        // 清空列表，显示添加表单
         timeSlotsList.innerHTML = `
             <div class="time-slot-form">
                 <h4>添加时间段</h4>
@@ -189,14 +342,14 @@ class CourseManager {
             this.timeSlots.push(newTimeSlot);
             this.timeSlots.sort(); // 按时间排序
             this.saveTimeSlots();
-            this.renderTimeSlotsList();
+            this.renderTimeSlotsManagement();
             this.renderCourses();
-            this.updateTimeSelect();
+            this.renderTimeSlotsInForm();
             this.showSuccessMessage('时间段添加成功');
         });
         
         document.querySelector('.btn-cancel-time-slot').addEventListener('click', () => {
-            this.renderTimeSlotsList();
+            this.renderTimeSlotsManagement();
         });
     }
 
@@ -205,7 +358,7 @@ class CourseManager {
         const [startTime, endTime] = timeSlot.split('-');
         const timeSlotsList = document.getElementById('timeSlotsList');
         
-        // 显示编辑表单
+        // 清空列表，显示编辑表单
         timeSlotsList.innerHTML = `
             <div class="time-slot-form">
                 <h4>编辑时间段</h4>
@@ -241,7 +394,7 @@ class CourseManager {
             
             // 检查是否有课程使用了该时间段
             const hasCourses = this.courses.some(course => course.time === this.timeSlots[index]);
-            if (hasCourses) {
+            if (hasCourses && confirm('该时间段已有课程，修改后课程时间也会相应更新，是否继续？')) {
                 // 更新使用该时间段的课程
                 this.courses.forEach(course => {
                     if (course.time === this.timeSlots[index]) {
@@ -252,16 +405,16 @@ class CourseManager {
             }
             
             this.timeSlots[index] = updatedTimeSlot;
-            this.timeSlots.sort();
+            this.timeSlots.sort(); // 按时间排序
             this.saveTimeSlots();
-            this.renderTimeSlotsList();
+            this.renderTimeSlotsManagement();
             this.renderCourses();
-            this.updateTimeSelect();
+            this.renderTimeSlotsInForm();
             this.showSuccessMessage('时间段更新成功');
         });
         
         document.querySelector('.btn-cancel-time-slot').addEventListener('click', () => {
-            this.renderTimeSlotsList();
+            this.renderTimeSlotsManagement();
         });
     }
 
@@ -283,129 +436,18 @@ class CourseManager {
         
         this.timeSlots.splice(index, 1);
         this.saveTimeSlots();
-        this.renderTimeSlotsList();
+        this.renderTimeSlotsManagement();
         this.renderCourses();
-        this.updateTimeSelect();
+        this.renderTimeSlotsInForm();
         this.showSuccessMessage('时间段删除成功');
-    }
-
-    updateTimeSelect() {
-        const timeSelect = document.getElementById('time');
-        
-        // 保存当前选中的值
-        const selectedValue = timeSelect.value;
-        
-        // 清空并重新添加选项
-        timeSelect.innerHTML = '<option value="">请选择时间段</option>';
-        
-        this.timeSlots.forEach(timeSlot => {
-            const option = document.createElement('option');
-            option.value = timeSlot;
-            option.textContent = timeSlot;
-            // 如果之前选中的值存在，则保持选中
-            if (timeSlot === selectedValue) {
-                option.selected = true;
-            }
-            timeSelect.appendChild(option);
-        });
-    }
-
-    // 修改renderCourses方法，使其动态生成时间段行
-    renderCourses() {
-        const emptyState = document.getElementById('emptyState');
-        const scheduleGrid = document.getElementById('scheduleGrid');
-        
-        // 清空课程表网格
-        scheduleGrid.innerHTML = '';
-        
-        // 如果没有时间段，设置默认时间段
-        if (this.timeSlots.length === 0) {
-            this.timeSlots = [
-                '08:00-09:30',
-                '09:45-11:15',
-                '11:30-13:00',
-                '14:00-15:30',
-                '15:45-17:15',
-                '17:30-19:00',
-                '19:15-20:45'
-            ];
-            this.saveTimeSlots();
-            this.updateTimeSelect();
-        }
-        
-        // 渲染时间段行
-        this.timeSlots.forEach(timeSlot => {
-            const timeSlotDiv = document.createElement('div');
-            timeSlotDiv.className = 'time-slot';
-            timeSlotDiv.innerHTML = `<div class="time-label">${timeSlot}</div>`;
-            
-            // 添加每天的课程单元格
-            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-            days.forEach(day => {
-                const cell = document.createElement('div');
-                cell.className = 'course-cell';
-                cell.setAttribute('data-day', day);
-                cell.setAttribute('data-time', timeSlot);
-                timeSlotDiv.appendChild(cell);
-            });
-            
-            scheduleGrid.appendChild(timeSlotDiv);
-        });
-        
-        if (this.courses.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-        }
-
-        emptyState.classList.add('hidden');
-
-        // 将课程放置到对应的网格位置
-        this.courses.forEach(course => {
-            const cell = document.querySelector(`[data-day="${course.day}"][data-time="${course.time}"]`);
-            if (cell) {
-                cell.classList.add('occupied');
-                cell.innerHTML = `
-                    <div class="course-item" data-course-id="${course.id}">
-                        <button class="delete-btn" onclick="courseManager.deleteCourse('${course.id}')" title="删除课程">×</button>
-                        <div class="course-name">${course.name}</div>
-                        <div class="course-teacher">${course.teacher}</div>
-                        <div class="course-location">教室：${course.location}</div>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    // 原有方法保持不变
-    addCourse(course) {
-        // 检查是否有课程冲突
-        const conflict = this.courses.find(existingCourse => 
-            existingCourse.day === course.day && existingCourse.time === course.time
-        );
-        
-        if (conflict) {
-            this.showErrorMessage(`该时间段已有课程：${conflict.name}`);
-            return false;
-        }
-        
-        this.courses.push(course);
-        this.saveCourses();
-        this.renderCourses();
-        return true;
-    }
-
-    deleteCourse(courseId) {
-        this.courses = this.courses.filter(course => course.id !== courseId);
-        this.saveCourses();
-        this.renderCourses();
     }
 
     clearForm() {
         document.getElementById('courseForm').reset();
     }
 
-    showSuccessMessage() {
-        this.showMessage('✅ 课程添加成功！', '#4CAF50');
+    showSuccessMessage(text = '操作成功') {
+        this.showMessage(`✅ ${text}！`, '#4CAF50');
     }
 
     showErrorMessage(text) {
@@ -427,7 +469,7 @@ class CourseManager {
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             z-index: 1000;
-            animation: slideIn 0.3s ease-out;
+            animation: messageSlideIn 0.3s ease-out;
             max-width: 300px;
             word-wrap: break-word;
         `;
@@ -436,7 +478,7 @@ class CourseManager {
 
         // 3秒后自动移除
         setTimeout(() => {
-            message.style.animation = 'slideOut 0.3s ease-in';
+            message.style.animation = 'messageSlideOut 0.3s ease-in';
             setTimeout(() => {
                 if (message.parentNode) {
                     message.parentNode.removeChild(message);
@@ -449,20 +491,74 @@ class CourseManager {
         localStorage.setItem('courses', JSON.stringify(this.courses));
     }
 
+    // 只保留带有错误处理的loadCourses方法
     loadCourses() {
-        const saved = localStorage.getItem('courses');
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const saved = localStorage.getItem('courses');
+            if (!saved) {
+                return [];
+            }
+            
+            const parsedData = JSON.parse(saved);
+            if (Array.isArray(parsedData)) {
+                return parsedData;
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.error('Error parsing courses from localStorage:', error);
+            return [];
+        }
     }
 
-    // 新增时间段保存和加载方法
-    saveTimeSlots() {
-        localStorage.setItem('timeSlots', JSON.stringify(this.timeSlots));
+    saveTimeSlots(timeSlots) {
+        if (timeSlots) {
+            localStorage.setItem('timeSlots', JSON.stringify(timeSlots));
+        } else {
+            localStorage.setItem('timeSlots', JSON.stringify(this.timeSlots));
+        }
     }
 
     loadTimeSlots() {
-        const saved = localStorage.getItem('timeSlots');
-        // 如果没有保存的时间段，返回默认时间段
-        if (!saved) {
+        try {
+            const saved = localStorage.getItem('timeSlots');
+            // If there's no saved data or it's invalid, return default time slots
+            if (!saved) {
+                const defaultTimeSlots = [
+                    '08:00-09:30',
+                    '09:45-11:15',
+                    '11:30-13:00',
+                    '14:00-15:30',
+                    '15:45-17:15',
+                    '17:30-19:00',
+                    '19:15-20:45'
+                ];
+                this.saveTimeSlots(defaultTimeSlots);
+                return defaultTimeSlots;
+            }
+            
+            // Try to parse the saved data
+            const parsedData = JSON.parse(saved);
+            // Verify that the parsed data is an array
+            if (Array.isArray(parsedData)) {
+                return parsedData;
+            } else {
+                // If data is not an array, use defaults
+                const defaultTimeSlots = [
+                    '08:00-09:30',
+                    '09:45-11:15',
+                    '11:30-13:00',
+                    '14:00-15:30',
+                    '15:45-17:15',
+                    '17:30-19:00',
+                    '19:15-20:45'
+                ];
+                this.saveTimeSlots(defaultTimeSlots);
+                return defaultTimeSlots;
+            }
+        } catch (error) {
+            // If there's any error during parsing, use default time slots
+            console.error('Error parsing time slots from localStorage:', error);
             const defaultTimeSlots = [
                 '08:00-09:30',
                 '09:45-11:15',
@@ -475,14 +571,13 @@ class CourseManager {
             this.saveTimeSlots(defaultTimeSlots);
             return defaultTimeSlots;
         }
-        return JSON.parse(saved);
     }
 }
 
-// 添加CSS动画
+// 添加CSS动画 - 移到了类外部，这是正确的位置
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideIn {
+    @keyframes messageSlideIn {
         from {
             transform: translateX(100%);
             opacity: 0;
@@ -493,7 +588,7 @@ style.textContent = `
         }
     }
     
-    @keyframes slideOut {
+    @keyframes messageSlideOut {
         from {
             transform: translateX(0);
             opacity: 1;
