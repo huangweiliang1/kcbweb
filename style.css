@@ -768,6 +768,199 @@ main {
 }
 
 ::-webkit-scrollbar-thumb {
+/* 时间段管理相关样式 */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-manage-time {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.btn-manage-time:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.time-slots-management {
+    padding: 20px;
+}
+
+.time-slots-controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-add-time-slot {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-add-time-slot:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.time-slots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-slot-item {
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.time-slot-item:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+}
+
+.time-slot-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.time-slot-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-time-slot,
+.btn-delete-time-slot {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-edit-time-slot {
+    background: #4299e1;
+    color: white;
+}
+
+.btn-edit-time-slot:hover {
+    background: #3182ce;
+}
+
+.btn-delete-time-slot {
+    background: #f56565;
+    color: white;
+}
+
+.btn-delete-time-slot:hover {
+    background: #e53e3e;
+}
+
+/* 时间段编辑表单 */
+.time-slot-form {
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-inputs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.time-inputs input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.time-separator {
+    font-weight: bold;
+    color: #718096;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn-save-time-slot,
+.btn-cancel-time-slot {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save-time-slot {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-save-time-slot:hover {
+    background: #38a169;
+}
+
+.btn-cancel-time-slot {
+    background: #a0aec0;
+    color: white;
+}
+
+.btn-cancel-time-slot:hover {
+    background: #718096;
+}
+
+.empty-time-slots {
+    text-align: center;
+    padding: 40px;
+    color: #718096;
+}
+
     background: #667eea;
     border-radius: 4px;
 }
