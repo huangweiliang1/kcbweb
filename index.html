@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程表管理系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 课程表管理系统</h1>
+            <p>轻松管理你的课程安排</p>
+        </header>
+
+        <main>
+            <!-- 顶部操作栏 -->
+            <section class="action-bar">
+                <div class="action-bar-content">
+                    <h2>我的课程表</h2>
+                    <button id="addCourseBtn" class="btn-add-course">
+                        <span class="btn-icon">+</span>
+                        添加课程
+                    </button>
+                </div>
+            </section>
+
+            <!-- 课程表网格显示区域 -->
+            <section class="course-schedule-section">
+                <div class="schedule-container">
+                    <div class="schedule-header">
+                        <div class="time-header">时间</div>
+                        <div class="day-header">周一</div>
+                        <div class="day-header">周二</div>
+                        <div class="day-header">周三</div>
+                        <div class="day-header">周四</div>
+                        <div class="day-header">周五</div>
+                        <div class="day-header">周六</div>
+                        <div class="day-header">周日</div>
+                    </div>
+                    <div id="scheduleGrid" class="schedule-grid">
+                        <!-- 时间段行 -->
+                        <div class="time-slot">
+                            <div class="time-label">08:00-09:30</div>
+                            <div class="course-cell" data-day="周一" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周二" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周三" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周四" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周五" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周六" data-time="08:00-09:30"></div>
+                            <div class="course-cell" data-day="周日" data-time="08:00-09:30"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">09:45-11:15</div>
+                            <div class="course-cell" data-day="周一" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周二" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周三" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周四" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周五" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周六" data-time="09:45-11:15"></div>
+                            <div class="course-cell" data-day="周日" data-time="09:45-11:15"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">11:30-13:00</div>
+                            <div class="course-cell" data-day="周一" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周二" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周三" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周四" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周五" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周六" data-time="11:30-13:00"></div>
+                            <div class="course-cell" data-day="周日" data-time="11:30-13:00"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">14:00-15:30</div>
+                            <div class="course-cell" data-day="周一" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周二" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周三" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周四" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周五" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周六" data-time="14:00-15:30"></div>
+                            <div class="course-cell" data-day="周日" data-time="14:00-15:30"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">15:45-17:15</div>
+                            <div class="course-cell" data-day="周一" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周二" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周三" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周四" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周五" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周六" data-time="15:45-17:15"></div>
+                            <div class="course-cell" data-day="周日" data-time="15:45-17:15"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">17:30-19:00</div>
+                            <div class="course-cell" data-day="周一" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周二" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周三" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周四" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周五" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周六" data-time="17:30-19:00"></div>
+                            <div class="course-cell" data-day="周日" data-time="17:30-19:00"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">19:15-20:45</div>
+                            <div class="course-cell" data-day="周一" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周二" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周三" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周四" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周五" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周六" data-time="19:15-20:45"></div>
+                            <div class="course-cell" data-day="周日" data-time="19:15-20:45"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 空状态提示 -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">📚</div>
+                    <h3>还没有添加任何课程</h3>
+                    <p>点击右上角的"添加课程"按钮开始创建你的课程表吧！</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- 添加课程模态框 -->
+        <div id="courseModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>添加新课程</h3>
+                    <button class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <form id="courseForm" class="course-form">
+                    <div class="form-group">
+                        <label for="courseName">课程名称</label>
+                        <input type="text" id="courseName" name="courseName" required placeholder="请输入课程名称">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="teacher">授课教师</label>
+                        <input type="text" id="teacher" name="teacher" required placeholder="请输入教师姓名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="day">上课日期</label>
+                        <select id="day" name="day" required>
+                            <option value="">请选择日期</option>
+                            <option value="周一">周一</option>
+                            <option value="周二">周二</option>
+                            <option value="周三">周三</option>
+                            <option value="周四">周四</option>
+                            <option value="周五">周五</option>
+                            <option value="周六">周六</option>
+                            <option value="周日">周日</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time">上课时间</label>
+                        <select id="time" name="time" required>
+                            <option value="">请选择时间段</option>
+                            <option value="08:00-09:30">08:00-09:30</option>
+                            <option value="09:45-11:15">09:45-11:15</option>
+                            <option value="11:30-13:00">11:30-13:00</option>
+                            <option value="14:00-15:30">14:00-15:30</option>
+                            <option value="15:45-17:15">15:45-17:15</option>
+                            <option value="17:30-19:00">17:30-19:00</option>
+                            <option value="19:15-20:45">19:15-20:45</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">上课地点</label>
+                        <input type="text" id="location" name="location" required placeholder="请输入教室或地点">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">课程描述</label>
+                        <textarea id="description" name="description" placeholder="请输入课程描述（可选）"></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn-primary">保存课程</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
