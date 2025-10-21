@@ -1404,20 +1404,26 @@ body {
         flex-direction: column;
     }
 
-    .modal-body {
+    /* 确保课程表单成为主要的滚动区域 */
+    .course-form {
         max-height: calc(90vh - 140px);
         overflow-y: auto;
         padding: 20px;
-        -webkit-overflow-scrolling: touch;
-        flex: 1;
-    }
-    
-    /* 课程表单优化，确保能在模态框内滚动 */
-    .course-form {
-        padding: 0;
         margin: 0;
         width: 100%;
         max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 按钮区域样式，确保在小屏幕上也能正确显示 */
+    .modal-actions {
+        padding: 15px 20px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        margin-top: 20px;
     }
     
     /* 修复iOS设备上的滚动问题 */
@@ -1435,11 +1441,22 @@ body {
             width: 100%;
         }
         
-        .modal-body {
-            max-height: calc(95vh - 140px);
+        .course-form {
+            max-height: calc(95vh - 160px);
             padding: 15px;
             min-height: 200px;
         }
+        
+        .modal-actions {
+            padding: 15px;
+        }
+    }
+    
+    /* 确保模态框body也能正常滚动 */
+    .modal-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        flex: 1;
     }
 
     .form-group input,
