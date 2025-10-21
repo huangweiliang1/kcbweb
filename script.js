@@ -199,10 +199,10 @@ class CourseManager {
         
         // 移动端特殊处理
         if (window.innerWidth <= 768) {
-            // 移除body的overflow: hidden以允许模态框滚动
-            document.body.style.overflow = 'auto';
-            // 设置为auto以允许整个页面滚动，但添加背景模糊效果
-            modal.style.overflowY = 'auto';
+            // 移除body的overflow: hidden以允许页面操作
+            document.body.style.overflow = 'hidden';
+            // 禁用模态框自身的滚动，让课程表单成为滚动区域
+            modal.style.overflowY = 'hidden';
             modal.style.webkitOverflowScrolling = 'touch';
         } else {
             // PC端仍然阻止背景滚动
@@ -213,17 +213,21 @@ class CourseManager {
         
         // 确保模态框内容在各种设备上都能正确滚动
         const modalContent = modal.querySelector('.modal-content');
-        const modalBody = modal.querySelector('.modal-body');
-        if (modalContent && modalBody) {
-            // 让CSS样式控制主要的滚动行为
-            // 这里只设置一些必要的基础属性
+        const courseForm = modal.querySelector('.course-form');
+        
+        // 配置模态框内容区域为flex布局
+        if (modalContent) {
             modalContent.style.display = 'flex';
             modalContent.style.flexDirection = 'column';
-            modalBody.style.overflowY = 'auto';
-            modalBody.style.webkitOverflowScrolling = 'touch';
-            
+            modalContent.style.height = window.innerWidth <= 768 ? '90vh' : 'auto';
+        }
+        
+        // 配置课程表单为滚动区域
+        if (courseForm) {
+            courseForm.style.overflowY = 'auto';
+            courseForm.style.webkitOverflowScrolling = 'touch';
             // 滚动到顶部
-            modalBody.scrollTop = 0;
+            courseForm.scrollTop = 0;
         }
     }
 }
@@ -325,7 +329,8 @@ class CourseManager {
                         <strong>课程描述：</strong>
                         <span>${course.description || '暂无描述'}</span>
                     </div>
-                    <div class="modal-actions" style="margin-top: 20px;">
+                    <div class="modal-actions" style="margin-top: 20px; display: flex; gap: 10px; flex-direction: column;">
+                        <button id="deleteCourseBtn" class="btn-danger" data-id="${course.id}">删除课程</button>
                         <button id="editCourseBtn" class="btn-primary" data-id="${course.id}" style="background-color: ${courseColor}; border-color: ${courseColor}; color: ${textColor};">编辑课程</button>
                     </div>
                 `;
@@ -366,6 +371,18 @@ class CourseManager {
                 editBtn.addEventListener('click', () => {
                     this.closeDetailModal();
                     this.editCourse(course);
+                });
+            }
+            
+            // 添加删除按钮事件监听
+            const deleteBtn = document.getElementById('deleteCourseBtn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    const courseId = deleteBtn.dataset.id;
+                    if (confirm('确定要删除这门课程吗？此操作不可撤销。')) {
+                        this.deleteCourse(courseId);
+                        this.closeDetailModal();
+                    }
                 });
             }
         }
