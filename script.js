@@ -215,10 +215,22 @@ class CourseManager {
                         <strong>课程描述：</strong>
                         <span>${course.description || '暂无描述'}</span>
                     </div>
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button id="editCourseBtn" class="btn-primary" data-id="${course.id}">编辑课程</button>
+                    </div>
                 `;
             }
 
             modal.classList.add('show');
+
+            // 添加编辑按钮事件监听
+            const editBtn = document.getElementById('editCourseBtn');
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    this.closeDetailModal();
+                    this.editCourse(course);
+                });
+            }
         }
     }
 
@@ -233,6 +245,44 @@ class CourseManager {
         const form = document.getElementById('courseForm');
         if (form) {
             form.reset();
+            // 移除编辑模式标识
+            form.dataset.editId = '';
+            // 恢复模态框标题
+            const modalTitle = document.querySelector('#courseModal .modal-header h3');
+            if (modalTitle) {
+                modalTitle.textContent = '添加新课程';
+            }
+        }
+    }
+
+    // 编辑课程
+    editCourse(course) {
+        const modal = document.getElementById('courseModal');
+        const form = document.getElementById('courseForm');
+        
+        if (modal && form) {
+            // 设置编辑模式
+            form.dataset.editId = course.id;
+            
+            // 修改模态框标题
+            const modalTitle = document.querySelector('#courseModal .modal-header h3');
+            if (modalTitle) {
+                modalTitle.textContent = '编辑课程';
+            }
+            
+            // 填充表单数据
+            document.getElementById('courseName').value = course.name;
+            document.getElementById('teacher').value = course.teacher;
+            document.getElementById('day').value = course.day;
+            document.getElementById('time').value = course.time;
+            document.getElementById('location').value = course.location;
+            document.getElementById('studentCount').value = course.studentCount || '';
+            document.getElementById('description').value = course.description || '';
+            
+            // 显示模态框
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            this.renderTimeSlotsInForm();
         }
     }
 
@@ -247,6 +297,10 @@ class CourseManager {
         const location = document.getElementById('location')?.value || '';
         const description = document.getElementById('description')?.value || '';
         const studentCount = document.getElementById('studentCount')?.value || '0';
+        
+        // 获取编辑模式标识
+        const form = document.getElementById('courseForm');
+        const editId = form?.dataset?.editId;
 
         // 验证数据
         if (!courseName || !teacher || !day || !time || !location) {
@@ -255,33 +309,61 @@ class CourseManager {
         }
 
         // 检查是否已存在相同时间和日期的课程
-        const exists = this.courses.some(course => course.day === day && course.time === time);
+        // 如果是编辑模式，需要排除当前编辑的课程
+        const exists = this.courses.some(course => 
+            course.day === day && 
+            course.time === time && 
+            (!editId || course.id !== editId)
+        );
+        
         if (exists) {
             this.showErrorMessage('该时间段已有课程');
             return;
         }
 
-        // 创建新课程对象，包含学生人数
-        const newCourse = {
-            id: Date.now().toString(),
-            name: courseName,
-            teacher: teacher,
-            day: day,
-            time: time,
-            location: location,
-            description: description,
-            studentCount: studentCount
-        };
+        if (editId) {
+            // 编辑现有课程
+            const courseIndex = this.courses.findIndex(course => course.id === editId);
+            if (courseIndex !== -1) {
+                this.courses[courseIndex] = {
+                    ...this.courses[courseIndex],
+                    name: courseName,
+                    teacher: teacher,
+                    day: day,
+                    time: time,
+                    location: location,
+                    description: description,
+                    studentCount: studentCount
+                };
+                this.saveCourses();
+                this.renderCourses();
+                this.closeModal();
+                this.clearForm();
+                this.showSuccessMessage('课程修改成功');
+            }
+        } else {
+            // 创建新课程对象，包含学生人数
+            const newCourse = {
+                id: Date.now().toString(),
+                name: courseName,
+                teacher: teacher,
+                day: day,
+                time: time,
+                location: location,
+                description: description,
+                studentCount: studentCount
+            };
 
-        // 添加课程
-        this.addCourse(newCourse);
+            // 添加课程
+            this.addCourse(newCourse);
 
-        // 关闭模态框并清空表单
-        this.closeModal();
-        this.clearForm();
+            // 关闭模态框并清空表单
+            this.closeModal();
+            this.clearForm();
 
-        // 显示成功消息
-        this.showSuccessMessage('课程添加成功');
+            // 显示成功消息
+            this.showSuccessMessage('课程添加成功');
+        }
     }
 
     addCourse(course) {
