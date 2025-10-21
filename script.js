@@ -7,7 +7,7 @@ class CourseManager {
         this.currentTooltip = null;
         this.init();
     }
-
+    
     init() {
         this.bindEvents();
         this.renderScheduleGrid();
@@ -20,11 +20,22 @@ class CourseManager {
             this.resizeTimeout = setTimeout(() => {
                 this.renderScheduleGrid();
                 this.renderCourses();
+                // 同时更新移动端课程显示
+                if (this.isMobile()) {
+                    const activeTab = document.querySelector('.day-tab.active');
+                    const day = activeTab ? activeTab.dataset.day : 'all';
+                    this.renderMobileCourses(day);
+                }
             }, 200);
         });
         
         // 初始化颜色选择器
         this.setupColorPickerListeners();
+        
+        // 初始化移动端功能
+        this.initMobileEvents();
+        // 初始化渲染移动端课程
+        this.renderMobileCourses();
     }
     
     // 设置颜色选择器事件监听
@@ -185,20 +196,34 @@ class CourseManager {
     const modal = document.getElementById('courseModal');
     if (modal) {
         modal.classList.add('show');
-        document.body.style.overflow = 'hidden'; // 防止背景滚动
-        this.renderTimeSlotsInForm();
-
+        
         // 移动端特殊处理
         if (window.innerWidth <= 768) {
-            // 确保模态框内容可以滚动
-            const modalContent = modal.querySelector('.modal-content');
-            const modalBody = modal.querySelector('.modal-body');
-            if (modalContent && modalBody) {
-                modalContent.style.maxHeight = '90vh';
-                modalBody.style.maxHeight = 'calc(90vh - 120px)';
-                modalBody.style.overflowY = 'auto';
-                modalBody.style.webkitOverflowScrolling = 'touch';
-            }
+            // 移除body的overflow: hidden以允许模态框滚动
+            document.body.style.overflow = 'auto';
+            // 设置为auto以允许整个页面滚动，但添加背景模糊效果
+            modal.style.overflowY = 'auto';
+            modal.style.webkitOverflowScrolling = 'touch';
+        } else {
+            // PC端仍然阻止背景滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        this.renderTimeSlotsInForm();
+        
+        // 确保模态框内容在各种设备上都能正确滚动
+        const modalContent = modal.querySelector('.modal-content');
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalContent && modalBody) {
+            // 让CSS样式控制主要的滚动行为
+            // 这里只设置一些必要的基础属性
+            modalContent.style.display = 'flex';
+            modalContent.style.flexDirection = 'column';
+            modalBody.style.overflowY = 'auto';
+            modalBody.style.webkitOverflowScrolling = 'touch';
+            
+            // 滚动到顶部
+            modalBody.scrollTop = 0;
         }
     }
 }
@@ -217,8 +242,34 @@ class CourseManager {
         const modal = document.getElementById('timeSlotsModal');
         if (modal) {
             modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
+            
+            // 移动端特殊处理
+            if (window.innerWidth <= 768) {
+                // 移除body的overflow: hidden以允许模态框滚动
+                document.body.style.overflow = 'auto';
+                // 设置为auto以允许整个页面滚动
+                modal.style.overflowY = 'auto';
+                modal.style.webkitOverflowScrolling = 'touch';
+            } else {
+                // PC端仍然阻止背景滚动
+                document.body.style.overflow = 'hidden';
+            }
+            
             this.renderTimeSlotsManagement();
+            
+            // 确保模态框内容在各种设备上都能正确滚动
+            const modalContent = modal.querySelector('.modal-content');
+            const modalBody = modal.querySelector('.time-slots-management');
+            if (modalContent && modalBody) {
+                // 让CSS样式控制主要的滚动行为
+                modalContent.style.display = 'flex';
+                modalContent.style.flexDirection = 'column';
+                modalBody.style.overflowY = 'auto';
+                modalBody.style.webkitOverflowScrolling = 'touch';
+                
+                // 滚动到顶部
+                modalBody.scrollTop = 0;
+            }
         }
     }
 
@@ -281,6 +332,33 @@ class CourseManager {
             }
             
             modal.classList.add('show');
+            
+            // 移动端特殊处理
+            if (window.innerWidth <= 768) {
+                // 移除body的overflow: hidden以允许模态框滚动
+                document.body.style.overflow = 'auto';
+                // 设置为auto以允许整个页面滚动
+                modal.style.overflowY = 'auto';
+                modal.style.webkitOverflowScrolling = 'touch';
+            } else {
+                // PC端仍然阻止背景滚动
+                document.body.style.overflow = 'hidden';
+            }
+
+            // 确保模态框内容在各种设备上都能正确滚动
+            const modalContent = modal.querySelector('.modal-content');
+            const modalBody = modal.querySelector('.course-detail-content');
+            if (modalContent && modalBody) {
+                // 让CSS样式控制主要的滚动行为
+                // 这里只设置一些必要的基础属性
+                modalContent.style.display = 'flex';
+                modalContent.style.flexDirection = 'column';
+                modalBody.style.overflowY = 'auto';
+                modalBody.style.webkitOverflowScrolling = 'touch';
+                
+                // 滚动到顶部
+                modalBody.scrollTop = 0;
+            }
 
             // 添加编辑按钮事件监听
             const editBtn = document.getElementById('editCourseBtn');
@@ -297,6 +375,7 @@ class CourseManager {
         const modal = document.getElementById('courseDetailModal');
         if (modal) {
             modal.classList.remove('show');
+            document.body.style.overflow = 'auto'; // 恢复滚动
         }
     }
 
@@ -455,6 +534,14 @@ class CourseManager {
                 };
                 this.saveCourses();
                 this.renderCourses();
+                
+                // 同时更新移动端课程显示
+                if (this.isMobile()) {
+                    const activeTab = document.querySelector('.day-tab.active');
+                    const dayFilter = activeTab ? activeTab.dataset.day : 'all';
+                    this.renderMobileCourses(dayFilter);
+                }
+                
                 this.closeModal();
                 this.clearForm();
                 this.showSuccessMessage('课程修改成功');
@@ -496,6 +583,14 @@ class CourseManager {
         this.courses = this.courses.filter(course => course.id !== id);
         this.saveCourses();
         this.renderCourses();
+        
+        // 同时更新移动端课程显示
+        if (this.isMobile()) {
+            const activeTab = document.querySelector('.day-tab.active');
+            const dayFilter = activeTab ? activeTab.dataset.day : 'all';
+            this.renderMobileCourses(dayFilter);
+        }
+        
         this.showSuccessMessage('课程删除成功');
     }
 
@@ -818,6 +913,13 @@ class CourseManager {
     saveCourses() {
         try {
             localStorage.setItem('courses', JSON.stringify(this.courses));
+            
+            // 保存后更新移动端课程显示（如果是移动设备且当前在移动端视图）
+            if (this.isMobile() && window.innerWidth <= 768) {
+                const activeTab = document.querySelector('.day-tab.active');
+                const dayFilter = activeTab ? activeTab.dataset.day : 'all';
+                this.renderMobileCourses(dayFilter);
+            }
         } catch (error) {
             console.error('保存课程数据失败:', error);
             this.showErrorMessage('保存课程数据失败');
@@ -969,6 +1071,94 @@ class CourseManager {
 
             timeSlotElement.innerHTML = html;
             scheduleGrid.appendChild(timeSlotElement);
+        });
+    }
+    
+    // 渲染移动端课程卡片
+    renderMobileCourses(filterDay = 'all') {
+        const container = document.getElementById('courseCardsContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // 根据选择的日期过滤课程
+        let filteredCourses = this.courses;
+        if (filterDay !== 'all') {
+            filteredCourses = this.courses.filter(course => course.day === filterDay);
+        }
+        
+        // 按日期和时间排序
+        filteredCourses.sort((a, b) => {
+            const dayOrder = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            const dayDiff = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+            if (dayDiff !== 0) return dayDiff;
+            return this.timeSlots.indexOf(a.time) - this.timeSlots.indexOf(b.time);
+        });
+        
+        // 如果没有课程，显示空状态
+        if (filteredCourses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state-mobile">
+                    <div class="empty-icon">📚</div>
+                    <h3>${filterDay === 'all' ? '还没有添加任何课程' : `${filterDay}没有课程安排`}</h3>
+                    <p>点击右上角的"添加课程"按钮开始创建你的课程表吧！</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // 创建课程卡片
+        filteredCourses.forEach(course => {
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            
+            // 计算文字颜色
+            const textColor = this.getContrastColor(course.color || '#667eea');
+            
+            card.innerHTML = `
+                <div class="course-card-header" style="border-left: 4px solid ${course.color || '#667eea'}">
+                    <h3 class="course-card-title" style="color: ${textColor}">${course.name || '未命名课程'}</h3>
+                    <div class="course-card-time">${course.day} ${course.time}</div>
+                </div>
+                <div class="course-card-detail">
+                    <span class="detail-label">教师:</span>
+                    <span class="detail-value">${course.teacher || '未知教师'}</span>
+                </div>
+                <div class="course-card-detail">
+                    <span class="detail-label">地点:</span>
+                    <span class="detail-value">${course.location || '未知地点'}</span>
+                </div>
+                ${course.notes ? `
+                <div class="course-card-detail">
+                    <span class="detail-label">备注:</span>
+                    <span class="detail-value">${course.notes}</span>
+                </div>
+                ` : ''}
+            `;
+            
+            // 添加点击事件查看详情
+            card.addEventListener('click', () => {
+                this.openCourseDetailModal(course);
+            });
+            
+            container.appendChild(card);
+        });
+    }
+    
+    // 初始化移动端事件监听
+    initMobileEvents() {
+        // 日期标签页切换事件
+        const dayTabs = document.querySelectorAll('.day-tab');
+        dayTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有标签的active状态
+                dayTabs.forEach(t => t.classList.remove('active'));
+                // 为当前标签添加active状态
+                tab.classList.add('active');
+                // 渲染对应日期的课程
+                const day = tab.dataset.day;
+                this.renderMobileCourses(day);
+            });
         });
     }
 }

@@ -961,7 +961,10 @@ select:disabled {
 
 /* 课程详情模态框内容样式 */
 .course-detail-content {
-    padding: 30px;
+    padding: 20px;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .detail-item {
@@ -1136,10 +1139,22 @@ select:disabled {
     }
 }
 
-/* 移动端课程列表容器 */
+/* 移动端课程列表容器 - 默认隐藏，在移动设备上显示 */
 .mobile-course-list {
     display: none;
     padding: 0 15px 15px;
+    margin-top: 15px;
+}
+
+/* 移动设备上显示卡片视图，隐藏表格视图 */
+@media (max-width: 768px) {
+    .mobile-course-list {
+        display: block;
+    }
+    
+    .schedule-container {
+        display: none;
+    }
 }
 
 .day-tab {
@@ -1385,13 +1400,46 @@ body {
         margin: 5vh auto;
         border-radius: 12px;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .modal-body {
-        max-height: calc(90vh - 120px);
+        max-height: calc(90vh - 140px);
         overflow-y: auto;
         padding: 20px;
         -webkit-overflow-scrolling: touch;
+        flex: 1;
+    }
+    
+    /* 课程表单优化，确保能在模态框内滚动 */
+    .course-form {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* 修复iOS设备上的滚动问题 */
+    @media (max-width: 480px) {
+        .modal {
+            padding: 10px;
+            align-items: flex-start;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal-content {
+            margin: 10px auto;
+            max-height: 95vh;
+            width: 100%;
+        }
+        
+        .modal-body {
+            max-height: calc(95vh - 140px);
+            padding: 15px;
+            min-height: 200px;
+        }
     }
 
     .form-group input,
@@ -1564,6 +1612,33 @@ body {
     .modal-body::-webkit-scrollbar-thumb:hover {
         background: #5a67d8;
     }
+}
+
+/* 移动端空状态样式 */
+.empty-state-mobile {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.empty-state-mobile .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.empty-state-mobile h3 {
+    margin-bottom: 10px;
+    color: #2d3748;
+    font-size: 1.2rem;
+}
+
+.empty-state-mobile p {
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 /* 触屏设备优化 */
