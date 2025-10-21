@@ -22,6 +22,52 @@ class CourseManager {
                 this.renderCourses();
             }, 200);
         });
+        
+        // 初始化颜色选择器
+        this.setupColorPickerListeners();
+    }
+    
+    // 设置颜色选择器事件监听
+    setupColorPickerListeners() {
+        const colorInput = document.getElementById('courseColor');
+        const colorPresets = document.querySelectorAll('.color-preset');
+        
+        if (colorInput && colorPresets.length > 0) {
+            // 监听预设颜色点击
+            colorPresets.forEach(preset => {
+                preset.addEventListener('click', () => {
+                    const color = preset.getAttribute('data-color');
+                    if (color) {
+                        colorInput.value = color;
+                        
+                        // 更新选中状态
+                        colorPresets.forEach(p => p.classList.remove('selected'));
+                        preset.classList.add('selected');
+                    }
+                });
+            });
+            
+            // 监听颜色输入变化
+            colorInput.addEventListener('input', () => {
+                // 更新预设颜色的选中状态
+                const currentColor = colorInput.value;
+                colorPresets.forEach(preset => {
+                    if (preset.getAttribute('data-color') === currentColor) {
+                        preset.classList.add('selected');
+                    } else {
+                        preset.classList.remove('selected');
+                    }
+                });
+            });
+            
+            // 设置初始选中状态
+            const initialColor = colorInput.value;
+            colorPresets.forEach(preset => {
+                if (preset.getAttribute('data-color') === initialColor) {
+                    preset.classList.add('selected');
+                }
+            });
+        }
     }
 
     bindEvents() {
@@ -190,14 +236,18 @@ class CourseManager {
             // 动态创建课程详情内容
             const courseDetailContent = document.getElementById('courseDetailContent');
             if (courseDetailContent) {
+                // 获取课程颜色并计算合适的文字颜色
+                const courseColor = course.color || '#667eea';
+                const textColor = this.getContrastColor(courseColor);
+                
                 courseDetailContent.innerHTML = `
                     <div class="course-detail-item">
                         <strong>课程名称：</strong>
-                        <span>${course.name}</span>
+                        <span>${course.name || '未命名'}</span>
                     </div>
                     <div class="course-detail-item">
                         <strong>授课教师：</strong>
-                        <span>${course.teacher}</span>
+                        <span>${course.teacher || '未设置'}</span>
                     </div>
                     <div class="course-detail-item">
                         <strong>上课时间：</strong>
@@ -205,22 +255,31 @@ class CourseManager {
                     </div>
                     <div class="course-detail-item">
                         <strong>上课地点：</strong>
-                        <span>${course.location}</span>
+                        <span>${course.location || '未设置'}</span>
                     </div>
                     <div class="course-detail-item">
                         <strong>学生人数：</strong>
                         <span>${course.studentCount || '暂无数据'}</span>
                     </div>
                     <div class="course-detail-item">
+                        <strong>课程分类：</strong>
+                        <span>${course.type || '其他'}</span>
+                    </div>
+                    <div class="course-detail-item">
+                        <strong>课程颜色：</strong>
+                        <span class="color-display" style="background-color: ${courseColor}; border: 1px solid #ddd; width: 30px; height: 30px; display: inline-block; border-radius: 4px;"></span>
+                        <span style="margin-left: 8px; color: #666;">${courseColor}</span>
+                    </div>
+                    <div class="course-detail-item">
                         <strong>课程描述：</strong>
                         <span>${course.description || '暂无描述'}</span>
                     </div>
                     <div class="modal-actions" style="margin-top: 20px;">
-                        <button id="editCourseBtn" class="btn-primary" data-id="${course.id}">编辑课程</button>
+                        <button id="editCourseBtn" class="btn-primary" data-id="${course.id}" style="background-color: ${courseColor}; border-color: ${courseColor}; color: ${textColor};">编辑课程</button>
                     </div>
                 `;
             }
-
+            
             modal.classList.add('show');
 
             // 添加编辑按钮事件监听
@@ -247,6 +306,21 @@ class CourseManager {
             form.reset();
             // 移除编辑模式标识
             form.dataset.editId = '';
+            form.dataset.originalDay = '';
+            form.dataset.originalTime = '';
+            
+            // 恢复day和time的可用状态
+            const daySelect = document.getElementById('day');
+            const timeSelect = document.getElementById('time');
+            if (daySelect) daySelect.disabled = false;
+            if (timeSelect) timeSelect.disabled = false;
+            
+            // 移除时间锁定提示
+            const timeNote = daySelect?.parentElement?.querySelector('.time-lock-note');
+            if (timeNote) {
+                timeNote.remove();
+            }
+            
             // 恢复模态框标题
             const modalTitle = document.querySelector('#courseModal .modal-header h3');
             if (modalTitle) {
@@ -263,6 +337,9 @@ class CourseManager {
         if (modal && form) {
             // 设置编辑模式
             form.dataset.editId = course.id;
+            // 存储原始的day和time，用于更新时保持位置不变
+            form.dataset.originalDay = course.day;
+            form.dataset.originalTime = course.time;
             
             // 修改模态框标题
             const modalTitle = document.querySelector('#courseModal .modal-header h3');
@@ -273,10 +350,31 @@ class CourseManager {
             // 填充表单数据
             document.getElementById('courseName').value = course.name;
             document.getElementById('teacher').value = course.teacher;
-            document.getElementById('day').value = course.day;
-            document.getElementById('time').value = course.time;
+            
+            // 设置day和time为禁用状态，用户不需要选择时间位置
+            const daySelect = document.getElementById('day');
+            const timeSelect = document.getElementById('time');
+            daySelect.value = course.day;
+            timeSelect.value = course.time;
+            daySelect.disabled = true;
+            timeSelect.disabled = true;
+            
+            // 添加提示文本说明时间不可修改
+            const timeContainer = daySelect.parentElement;
+            if (timeContainer && !timeContainer.querySelector('.time-lock-note')) {
+                const note = document.createElement('div');
+                note.className = 'time-lock-note';
+                note.style.fontSize = '0.8rem';
+                note.style.color = '#666';
+                note.style.marginTop = '4px';
+                note.textContent = '时间位置已锁定，直接修改其他信息即可';
+                timeContainer.appendChild(note);
+            }
+            
             document.getElementById('location').value = course.location;
             document.getElementById('studentCount').value = course.studentCount || '';
+            document.getElementById('courseType').value = course.type || '必修课';
+            document.getElementById('courseColor').value = course.color || '#667eea';
             document.getElementById('description').value = course.description || '';
             
             // 显示模态框
@@ -292,33 +390,51 @@ class CourseManager {
         // 获取表单数据
         const courseName = document.getElementById('courseName')?.value || '';
         const teacher = document.getElementById('teacher')?.value || '';
-        const day = document.getElementById('day')?.value || '';
-        const time = document.getElementById('time')?.value || '';
         const location = document.getElementById('location')?.value || '';
         const description = document.getElementById('description')?.value || '';
         const studentCount = document.getElementById('studentCount')?.value || '0';
+        const courseType = document.getElementById('courseType')?.value || '必修课';
+        const courseColor = document.getElementById('courseColor')?.value || '#667eea';
         
-        // 获取编辑模式标识
+        // 获取编辑模式标识和原始时间信息
         const form = document.getElementById('courseForm');
         const editId = form?.dataset?.editId;
+        
+        // 编辑模式下使用原始的day和time，保持位置不变
+        let day, time;
+        if (editId) {
+            day = form?.dataset?.originalDay;
+            time = form?.dataset?.originalTime;
+        } else {
+            // 添加新课程时需要选择时间
+            day = document.getElementById('day')?.value || '';
+            time = document.getElementById('time')?.value || '';
+        }
 
         // 验证数据
-        if (!courseName || !teacher || !day || !time || !location) {
-            this.showErrorMessage('请填写所有必填字段');
+        if (!courseName || !teacher || !location) {
+            this.showErrorMessage('请填写课程名称、教师和地点');
+            return;
+        }
+        
+        // 添加新课程时需要验证时间
+        if (!editId && (!day || !time)) {
+            this.showErrorMessage('请选择上课时间');
             return;
         }
 
         // 检查是否已存在相同时间和日期的课程
-        // 如果是编辑模式，需要排除当前编辑的课程
-        const exists = this.courses.some(course => 
-            course.day === day && 
-            course.time === time && 
-            (!editId || course.id !== editId)
-        );
-        
-        if (exists) {
-            this.showErrorMessage('该时间段已有课程');
-            return;
+        // 编辑模式下不需要检查，因为使用的是原始位置
+        if (!editId) {
+            const exists = this.courses.some(course => 
+                course.day === day && 
+                course.time === time
+            );
+            
+            if (exists) {
+                this.showErrorMessage('该时间段已有课程');
+                return;
+            }
         }
 
         if (editId) {
@@ -333,7 +449,9 @@ class CourseManager {
                     time: time,
                     location: location,
                     description: description,
-                    studentCount: studentCount
+                    studentCount: studentCount,
+                    type: courseType,
+                    color: courseColor
                 };
                 this.saveCourses();
                 this.renderCourses();
@@ -342,7 +460,7 @@ class CourseManager {
                 this.showSuccessMessage('课程修改成功');
             }
         } else {
-            // 创建新课程对象，包含学生人数
+            // 创建新课程对象，包含学生人数、分类和颜色
             const newCourse = {
                 id: Date.now().toString(),
                 name: courseName,
@@ -351,7 +469,9 @@ class CourseManager {
                 time: time,
                 location: location,
                 description: description,
-                studentCount: studentCount
+                studentCount: studentCount,
+                type: courseType,
+                color: courseColor
             };
 
             // 添加课程
@@ -385,6 +505,9 @@ class CourseManager {
         courseCells.forEach(cell => {
             cell.innerHTML = '';
             cell.classList.remove('occupied');
+            // 重置样式
+            cell.style.backgroundColor = '';
+            cell.style.color = '';
         });
 
         // 渲染课程
@@ -393,16 +516,28 @@ class CourseManager {
             const courseCell = document.querySelector(`.course-cell[data-day="${course.day}"][data-time="${course.time}"]`);
 
             if (courseCell) {
+                // 获取课程颜色，如果没有设置则使用默认颜色
+                const courseColor = course.color || '#667eea';
+                
+                // 根据背景色计算合适的文字颜色，确保对比度
+                const textColor = this.getContrastColor(courseColor);
+
                 // 创建课程项元素
                 const courseItem = document.createElement('div');
                 courseItem.className = 'course-item';
+                
+                // 应用颜色样式
+                courseItem.style.backgroundColor = courseColor;
+                courseItem.style.color = textColor;
+                courseItem.style.border = `1px solid ${textColor}33`; // 添加半透明边框
 
-                // 构建课程项的HTML内容
+                // 构建课程项的HTML内容，确保内容正常显示
                 courseItem.innerHTML = `
-                    <div class="course-name">${course.name}</div>
-                    <div class="course-teacher">${course.teacher}</div>
-                    <div class="course-location">${course.location}</div>
-                    <button class="delete-btn" data-id="${course.id}">×</button>
+                    <div class="course-type">${course.type || '其他'}</div>
+                    <div class="course-name">${course.name || '未命名'}</div>
+                    <div class="course-teacher">${course.teacher || '未设置'}</div>
+                    <div class="course-location">${course.location || '未设置'}</div>
+                    <button class="delete-btn" data-id="${course.id}" style="color: ${textColor};">×</button>
                 `;
 
                 // 鼠标悬浮显示完整信息
@@ -430,6 +565,9 @@ class CourseManager {
                     });
                 }
 
+                // 设置课程单元格样式
+                courseCell.style.backgroundColor = courseColor;
+                courseCell.style.color = textColor;
                 courseCell.appendChild(courseItem);
                 courseCell.classList.add('occupied');
             }
@@ -603,19 +741,34 @@ class CourseManager {
         // 创建提示框
         const tooltip = document.createElement('div');
         tooltip.className = 'course-tooltip';
+        
+        // 获取课程颜色和对应的文字颜色
+        const courseColor = course.color || '#667eea';
+        const textColor = this.getContrastColor(courseColor);
+        
+        // 应用适当的样式，确保良好的对比度
         tooltip.innerHTML = `
-            <h4>${course.name}</h4>
-            <p><strong>教师：</strong>${course.teacher}</p>
-            <p><strong>时间：</strong>${course.day} ${course.time}</p>
-            <p><strong>地点：</strong>${course.location}</p>
-            <p><strong>学生人数：</strong>${course.studentCount || '暂无数据'}</p>
-            ${course.description ? `<p><strong>描述：</strong>${course.description}</p>` : ''}
+            <h4 style="background-color: ${courseColor}; color: ${textColor}; padding: 8px 12px; margin: 0; border-radius: 4px 4px 0 0; border: none;">${course.name || '未命名'}</h4>
+            <div style="padding: 10px; background-color: #fff; border-radius: 0 0 4px 4px; border: none;">
+                <p style="margin: 4px 0; color: #333;"><strong>分类：</strong>${course.type || '其他'}</p>
+                <p style="margin: 4px 0; color: #333;"><strong>教师：</strong>${course.teacher || '未设置'}</p>
+                <p style="margin: 4px 0; color: #333;"><strong>时间：</strong>${course.day} ${course.time}</p>
+                <p style="margin: 4px 0; color: #333;"><strong>地点：</strong>${course.location || '未设置'}</p>
+                <p style="margin: 4px 0; color: #333;"><strong>学生人数：</strong>${course.studentCount || '暂无数据'}</p>
+                ${course.description ? `<p style="margin: 4px 0; color: #333;"><strong>描述：</strong>${course.description}</p>` : ''}
+            </div>
         `;
 
-        // 设置位置
+        // 设置位置和样式，移除黑色边框
         tooltip.style.position = 'fixed';
         tooltip.style.left = (event.clientX + 10) + 'px';
         tooltip.style.top = (event.clientY + 10) + 'px';
+        tooltip.style.zIndex = '1000';
+        tooltip.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        tooltip.style.borderRadius = '4px';
+        tooltip.style.border = `2px solid ${courseColor}`;
+        tooltip.style.background = 'transparent';
+        tooltip.style.padding = '0';
 
         // 添加到body
         document.body.appendChild(tooltip);
@@ -668,6 +821,45 @@ class CourseManager {
         } catch (error) {
             console.error('保存课程数据失败:', error);
             this.showErrorMessage('保存课程数据失败');
+        }
+    }
+
+    // 获取对比度文字颜色 - 优化版
+    getContrastColor(backgroundColor) {
+        // 确保输入是有效的十六进制颜色
+        if (!backgroundColor || typeof backgroundColor !== 'string') {
+            return '#000000'; // 默认返回黑色
+        }
+        
+        // 处理各种十六进制颜色格式 (#FFF, #FFFFFF)
+        let hex = backgroundColor.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('');
+        }
+        
+        // 转换为RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // 计算相对亮度 (使用WCAG标准公式)
+        const [R, G, B] = [r, g, b].map(component => {
+            const value = component / 255;
+            return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+        });
+        
+        // 计算相对亮度
+        const luminance = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+        
+        // 根据亮度返回高对比度文字颜色
+        // 对于亮色背景使用深灰色代替纯黑，对于暗色背景使用近白色代替纯白
+        // 这样可以避免过于刺眼的对比
+        if (luminance > 0.5) {
+            // 亮色背景 -> 深灰色文字
+            return '#333333';
+        } else {
+            // 暗色背景 -> 近白色文字
+            return '#FFFFFF';
         }
     }
 

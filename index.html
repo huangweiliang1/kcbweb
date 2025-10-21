@@ -126,6 +126,36 @@
                         <input type="number" id="studentCount" name="studentCount" min="0" placeholder="请输入学生人数">
                     </div>
                     
+                    <!-- 添加课程分类字段 -->
+                    <div class="form-group">
+                        <label for="courseType">课程分类</label>
+                        <select id="courseType" name="courseType">
+                            <option value="必修课">必修课</option>
+                            <option value="选修课">选修课</option>
+                            <option value="实验课">实验课</option>
+                            <option value="讲座">讲座</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 添加颜色选择字段 -->
+                    <div class="form-group">
+                        <label for="courseColor">课程颜色</label>
+                        <div class="color-picker">
+                            <input type="color" id="courseColor" name="courseColor" value="#667eea">
+                            <div class="color-presets">
+                                <span class="color-preset" data-color="#667eea"></span>
+                                <span class="color-preset" data-color="#764ba2"></span>
+                                <span class="color-preset" data-color="#f093fb"></span>
+                                <span class="color-preset" data-color="#f5576c"></span>
+                                <span class="color-preset" data-color="#4facfe"></span>
+                                <span class="color-preset" data-color="#43e97b"></span>
+                                <span class="color-preset" data-color="#fa709a"></span>
+                                <span class="color-preset" data-color="#fee140"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="description">课程描述</label>
                         <textarea id="description" name="description" placeholder="请输入课程描述（可选）"></textarea>
