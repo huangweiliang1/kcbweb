@@ -20,9 +20,11 @@ body {
     0% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
+
     100% {
         background-position: 0% 50%;
     }
@@ -43,6 +45,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -82,6 +85,7 @@ body {
     from {
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+
     to {
         text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
     }
@@ -169,10 +173,300 @@ body {
     transform: translateY(0);
 }
 
-/* 课程表网格区域样式 */
-.schedule-container {
-    padding: 30px;
+/* 时间线切换按钮样式 */
+.btn-toggle-timeline {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-toggle-timeline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+}
+
+.btn-toggle-timeline.active {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
+}
+
+/* 时间线区域样式 */
+.timeline-section {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    display: none;
+}
+
+.timeline-section.active {
+    display: block;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .timeline-item {
+        width: 160px;
+        margin: 0 10px;
+    }
+
+    .timeline-content {
+        padding: 12px;
+    }
+
+    .timeline-course-name {
+        font-size: 1rem;
+    }
+}
+
+.course-schedule-section {
+    display: block;
+}
+
+.course-schedule-section.hidden {
+    display: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.timeline-container h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* 空时间线状态 */
+.empty-timeline {
+    text-align: center;
+    padding: 60px 20px;
+    color: #718096;
+}
+
+.empty-timeline .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.empty-timeline p {
+    font-size: 1.1rem;
+}
+
+/* 班级时间线 */
+.class-timeline {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    margin-bottom: 40px;
+}
+
+.class-timeline-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.class-timeline-header h4 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    margin: 0;
+}
+
+.class-timeline-header .total-students {
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+/* 横向时间线容器 */
+.timeline-items {
     position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: 40px 0 0;
+    margin: 0 -15px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+}
+
+/* 隐藏滚动条但保留功能 */
+.timeline-items::-webkit-scrollbar {
+    height: 6px;
+}
+
+.timeline-items::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.timeline-items::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+.timeline-items::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* 时间线横向连接线 */
+.timeline-items::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    right: 0;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+/* 时间线节点项 */
+.timeline-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 200px;
+    margin: 0 15px;
+    animation: fadeInUp 0.5s ease-out;
+    transition: transform 0.3s ease;
+}
+
+.timeline-item:hover {
+    transform: translateY(-5px);
+}
+
+/* 时间线节点 */
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -20px;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    border-radius: 50%;
+    background: #667eea;
+    border: 4px solid #edf2f7;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover::before {
+    transform: scale(1.2);
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+}
+
+.timeline-date {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.timeline-date::before {
+    content: '📅 ';
+}
+
+.timeline-content {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    border-top: 3px solid #667eea;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.timeline-course-name {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.timeline-student-count {
+    color: #718096;
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+}
+
+.timeline-student-count::before {
+    content: '👥 ';
+}
+
+.timeline-teacher {
+    color: #718096;
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+}
+
+.timeline-teacher::before {
+    content: '👨‍🏫 ';
+}
+
+.timeline-location {
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+.timeline-location::before {
+    content: '🏢 ';
+}
+
+/* 响应式时间线 */
+@media (max-width: 768px) {
+    .timeline-section {
+        padding: 20px 15px;
+    }
+
+    .class-timeline {
+        padding: 15px;
+    }
+
+    .timeline-content {
+        padding: 12px;
+    }
 }
 
 .schedule-header {
@@ -183,7 +477,8 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.time-header, .day-header {
+.time-header,
+.day-header {
     flex: 1;
     padding: 15px;
     text-align: center;
@@ -193,7 +488,8 @@ body {
     border-bottom: 2px solid #e2e8f0;
 }
 
-.time-header:last-child, .day-header:last-child {
+.time-header:last-child,
+.day-header:last-child {
     border-right: none;
 }
 
@@ -384,7 +680,8 @@ body {
     text-overflow: ellipsis;
 }
 
-.course-teacher, .course-location {
+.course-teacher,
+.course-location {
     font-size: 0.8rem;
     opacity: 0.9;
     white-space: nowrap;
@@ -460,6 +757,7 @@ body {
         opacity: 0;
         transform: translateY(-20px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -568,6 +866,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -726,6 +1025,7 @@ body {
         transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -1052,6 +1352,7 @@ select:disabled {
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -1133,6 +1434,7 @@ select:disabled {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -1142,6 +1444,7 @@ select:disabled {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
@@ -1159,7 +1462,7 @@ select:disabled {
     .mobile-course-list {
         display: block;
     }
-    
+
     .schedule-container {
         display: none;
     }
@@ -1269,6 +1572,7 @@ body {
 
 /* 移动端模态框优化 */
 @media (max-width: 768px) {
+
     /* 已有样式保持不变 */
     body {
         padding: 20px;
@@ -1402,7 +1706,8 @@ body {
         text-overflow: ellipsis;
     }
 
-    .course-teacher, .course-location {
+    .course-teacher,
+    .course-location {
         font-size: 0.8rem;
         opacity: 0.9;
         white-space: nowrap;
@@ -1430,13 +1735,13 @@ body {
         max-height: 90vh;
         overflow: hidden;
     }
-    
+
     /* 模态框头部固定 */
     .modal-header {
         flex-shrink: 0;
         z-index: 10;
     }
-    
+
     /* 确保课程表单成为主要的滚动区域 */
     .course-form {
         flex: 1;
@@ -1446,9 +1751,10 @@ body {
         width: 100%;
         max-width: 100%;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 80px; /* 为底部按钮预留空间 */
+        padding-bottom: 80px;
+        /* 为底部按钮预留空间 */
     }
-    
+
     /* 按钮区域样式，确保在小屏幕上也能正确显示并固定在底部 */
     .modal-actions {
         position: fixed;
@@ -1465,7 +1771,7 @@ body {
         margin: 0 auto;
         max-width: 600px;
     }
-    
+
     /* 修复iOS设备上的滚动问题 */
     @media (max-width: 480px) {
         .modal {
@@ -1474,26 +1780,26 @@ body {
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
         }
-        
+
         .modal-content {
             margin: 10px auto;
             max-height: 95vh;
             height: 95vh;
             width: 100%;
         }
-        
+
         .course-form {
             padding: 15px;
             padding-bottom: 80px;
             min-height: 200px;
         }
-        
+
         .modal-actions {
             padding: 15px;
             width: calc(100% - 20px);
         }
     }
-    
+
     /* 确保模态框body也能正常滚动 */
     .modal-body {
         overflow-y: auto;
@@ -1505,7 +1811,8 @@ body {
     .form-group select,
     .form-group textarea {
         padding: 12px;
-        font-size: 16px; /* 防止iOS缩放 */
+        font-size: 16px;
+        /* 防止iOS缩放 */
         border-radius: 8px;
         border: 1px solid #e2e8f0;
     }
@@ -1765,7 +2072,8 @@ body {
 }
 
 
-.course-teacher, .course-location {
+.course-teacher,
+.course-location {
     font-size: 0.8rem;
     opacity: 0.9;
     white-space: nowrap;
@@ -1806,12 +2114,14 @@ body {
 /* 触屏设备优化 - 确保在移动端始终明显可见 */
 @media (hover: none) and (pointer: coarse) {
     .delete-btn {
-        opacity: 1; /* 始终完全可见 */
+        opacity: 1;
+        /* 始终完全可见 */
         transform: scale(1);
         width: 28px;
         height: 28px;
         font-size: 18px;
-        background-color: rgba(255, 0, 0, 0.15); /* 添加浅色背景提高可见度 */
+        background-color: rgba(255, 0, 0, 0.15);
+        /* 添加浅色背景提高可见度 */
     }
 
     .delete-btn:active {

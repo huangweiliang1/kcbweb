@@ -94,6 +94,8 @@ class CourseManager {
         const addTimeSlotBtn = document.getElementById('addTimeSlotBtn');
         const detailModal = document.getElementById('courseDetailModal');
         const closeDetailModal = document.getElementById('closeDetailModal');
+        const toggleTimelineBtn = document.getElementById('toggleTimelineBtn');
+        const timelineSection = document.getElementById('timelineSection');
 
         // 确保所有关键DOM元素存在
         if (!form || !addBtn || !manageTimeSlotsBtn || !modal || !timeSlotsModal) {
@@ -153,6 +155,27 @@ class CourseManager {
             detailModal.addEventListener('click', (e) => {
                 if (e.target === detailModal) {
                     this.closeDetailModal();
+                }
+            });
+        }
+
+        // 时间线切换按钮事件
+        if (toggleTimelineBtn && timelineSection) {
+            toggleTimelineBtn.addEventListener('click', () => {
+                const scheduleSection = document.getElementById('scheduleSection');
+                if (!scheduleSection) return;
+                
+                // 切换时间线和课程表的显示状态
+                timelineSection.classList.toggle('active');
+                scheduleSection.classList.toggle('hidden');
+                toggleTimelineBtn.classList.toggle('active');
+                
+                // 更新按钮文本
+                if (timelineSection.classList.contains('active')) {
+                    toggleTimelineBtn.innerHTML = '<span class="btn-icon">📊</span> 隐藏时间线';
+                    this.renderTimeline();
+                } else {
+                    toggleTimelineBtn.innerHTML = '<span class="btn-icon">📊</span> 显示时间线';
                 }
             });
         }
@@ -561,6 +584,13 @@ class CourseManager {
                 
                 this.closeModal();
                 this.clearForm();
+                
+                // 如果时间线正在显示，更新时间线
+                const timelineSection = document.getElementById('timelineSection');
+                if (timelineSection && timelineSection.classList.contains('show')) {
+                    this.renderTimeline();
+                }
+                
                 this.showSuccessMessage('课程修改成功');
             }
         } else {
@@ -584,6 +614,12 @@ class CourseManager {
             // 关闭模态框并清空表单
             this.closeModal();
             this.clearForm();
+            
+            // 如果时间线正在显示，更新时间线
+            const timelineSection = document.getElementById('timelineSection');
+            if (timelineSection && timelineSection.classList.contains('active')) {
+                this.renderTimeline();
+            }
 
             // 显示成功消息
             this.showSuccessMessage('课程添加成功');
@@ -594,6 +630,13 @@ class CourseManager {
         this.courses.push(course);
         this.saveCourses();
         this.renderCourses();
+        
+        // 同时更新移动端课程显示
+        if (this.isMobile()) {
+            const activeTab = document.querySelector('.day-tab.active');
+            const dayFilter = activeTab ? activeTab.dataset.day : 'all';
+            this.renderMobileCourses(dayFilter);
+        }
     }
 
     deleteCourse(id) {
@@ -608,7 +651,106 @@ class CourseManager {
             this.renderMobileCourses(dayFilter);
         }
         
+        // 如果时间线正在显示，更新时间线
+        const timelineSection = document.getElementById('timelineSection');
+        if (timelineSection && timelineSection.classList.contains('active')) {
+            this.renderTimeline();
+        }
+        
         this.showSuccessMessage('课程删除成功');
+    }
+    
+    // 渲染时间线
+    renderTimeline() {
+        const timelineContent = document.getElementById('timelineContent');
+        if (!timelineContent) return;
+        
+        // 检查是否有课程
+        if (this.courses.length === 0) {
+            timelineContent.innerHTML = `
+                <div class="empty-timeline">
+                    <div class="empty-icon">📊</div>
+                    <p>暂无课程时间线数据</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // 按班级（课程名称）分组课程
+        const coursesByClass = this.groupCoursesByClass();
+        
+        // 清空时间线内容
+        timelineContent.innerHTML = '';
+        
+        // 为每个班级创建时间线
+        Object.entries(coursesByClass).forEach(([className, classCourses]) => {
+            // 计算班级总人数（使用第一个课程的学生人数，因为一个班级的学生人数应该是一致的）
+            const totalStudents = classCourses[0]?.studentCount || 0;
+            
+            // 按日期和时间排序课程
+            const sortedCourses = this.sortCoursesByDateTime(classCourses);
+            
+            // 创建班级时间线容器
+            const classTimeline = document.createElement('div');
+            classTimeline.className = 'class-timeline';
+            
+            // 设置班级时间线内容
+            classTimeline.innerHTML = `
+                <div class="class-timeline-header">
+                    <h4>${className}</h4>
+                    <div class="total-students">总人数: ${totalStudents} 人</div>
+                </div>
+                <div class="timeline-items">
+                    ${sortedCourses.map(course => this.createTimelineItem(course)).join('')}
+                </div>
+            `;
+            
+            timelineContent.appendChild(classTimeline);
+        });
+    }
+    
+    // 按班级（课程名称）分组课程
+    groupCoursesByClass() {
+        const grouped = {};
+        
+        this.courses.forEach(course => {
+            const className = course.name || '未命名课程';
+            if (!grouped[className]) {
+                grouped[className] = [];
+            }
+            grouped[className].push(course);
+        });
+        
+        return grouped;
+    }
+    
+    // 按日期和时间排序课程
+    sortCoursesByDateTime(courses) {
+        const dayOrder = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        
+        return [...courses].sort((a, b) => {
+            // 先按日期排序
+            const dayDiff = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+            if (dayDiff !== 0) return dayDiff;
+            
+            // 再按时间排序
+            return this.timeSlots.indexOf(a.time) - this.timeSlots.indexOf(b.time);
+        });
+    }
+    
+    // 创建时间线项目
+    createTimelineItem(course) {
+        return `
+            <div class="timeline-item">
+                <div class="timeline-date">${course.day} ${course.time}</div>
+                <div class="timeline-content">
+                    <div class="timeline-course-name">${course.name || '未命名课程'}</div>
+                    <div class="timeline-student-count">学生人数: ${course.studentCount || '暂无数据'} 人</div>
+                    <div class="timeline-teacher">教师: ${course.teacher || '未设置'}</div>
+                    <div class="timeline-location">地点: ${course.location || '未设置'}</div>
+                </div>
+            </div>
+        `;
     }
 
     renderCourses() {

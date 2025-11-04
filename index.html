@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>课程表管理系统</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -27,12 +29,29 @@
                             <span class="btn-icon">🕒</span>
                             管理时间
                         </button>
+                        <button id="toggleTimelineBtn" class="btn-toggle-timeline">
+                            <span class="btn-icon">📊</span>
+                            显示时间线
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 时间线显示区域 -->
+            <section id="timelineSection" class="timeline-section">
+                <div class="timeline-container">
+                    <h3>课程时间线</h3>
+                    <div id="timelineContent" class="timeline-content">
+                        <div class="empty-timeline">
+                            <div class="empty-icon">📊</div>
+                            <p>暂无课程时间线数据</p>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- 课程表网格显示区域 -->
-            <section class="course-schedule-section">
+            <section id="scheduleSection" class="course-schedule-section">
                 <div class="schedule-container">
                     <div class="schedule-header">
                         <div class="time-header">时间</div>
@@ -55,7 +74,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 移动端课程列表 -->
                 <div class="mobile-course-list">
                     <div class="day-tabs">
@@ -87,12 +106,12 @@
                         <label for="courseName">课程名称</label>
                         <input type="text" id="courseName" name="courseName" required placeholder="请输入课程名称">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="teacher">授课教师</label>
                         <input type="text" id="teacher" name="teacher" required placeholder="请输入教师姓名">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="day">上课日期</label>
                         <select id="day" name="day" required>
@@ -106,7 +125,7 @@
                             <option value="周日">周日</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="time">上课时间</label>
                         <select id="time" name="time" required>
@@ -114,18 +133,18 @@
                             <!-- 时间段将通过JavaScript动态生成 -->
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="location">上课地点</label>
                         <input type="text" id="location" name="location" required placeholder="请输入教室或地点">
                     </div>
-                    
+
                     <!-- 添加学生人数字段 -->
                     <div class="form-group">
                         <label for="studentCount">学生人数</label>
                         <input type="number" id="studentCount" name="studentCount" min="0" placeholder="请输入学生人数">
                     </div>
-                    
+
                     <!-- 添加课程分类字段 -->
                     <div class="form-group">
                         <label for="courseType">课程分类</label>
@@ -137,7 +156,7 @@
                             <option value="其他">其他</option>
                         </select>
                     </div>
-                    
+
                     <!-- 添加颜色选择字段 -->
                     <div class="form-group">
                         <label for="courseColor">课程颜色</label>
@@ -155,16 +174,17 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="description">课程描述</label>
                         <textarea id="description" name="description" placeholder="请输入课程描述（可选）"></textarea>
                     </div>
-                    
+
                     <div class="modal-actions">
                         <button type="button" class="btn-cancel" id="cancelBtn">取消</button>
                         <button type="submit" class="btn-primary">保存课程</button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -189,7 +209,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- 移动端课程详情模态框 -->
         <div id="courseDetailModal" class="modal">
             <div class="modal-content">
@@ -206,4 +226,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
